@@ -1,6 +1,7 @@
 import $axios from 'axios';
 
 const baseHost = 'https://www.baidu.com';
+const loginPath = '/login';
 
 function createAxios() {
   // 创建实例，配置基本参数
@@ -29,16 +30,36 @@ function createAxios() {
   return axios;
 }
 
+// axiosWrapper没有放进axios.interceptors.response.use中是因为可以传入更多自定义配置options
 function axiosWrapper(promise, options) {
   // 验证处理response
   const successCode = [0];
   const AuthFailedCode = [4003, 4004];
   const errorCode = [-1];
+  const acceptContentType = ['application/octet-stream'];
+  const newOption = {
+    extract: true,
+    ...options
+  };
   function validateData(response) {
+    const contentType = _.get(response, ['headers', 'content-type'], -1);
     let code = -1;
 
     if (response && response.data && response.data.code) {
       code = response.data.code;
+    }
+    // 下载文件
+    if (
+      acceptContentType.filter(item => contentType.indexOf(item) > -1).length
+    ) {
+      let url = window.URL.createObjectURL(new Blob([response.data]));
+      let link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = url;
+      link.setAttribute('download', 'example.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      return;
     }
     // 请求成功
     if (successCode.includes(code)) {
@@ -46,8 +67,9 @@ function axiosWrapper(promise, options) {
     }
     // 没有权限
     if (AuthFailedCode.includes(code)) {
+      // message.warning('没有权限，请登录！') // 提示，例如antd的全局提示
       setTimeout(() => {
-        window.location.href = baseHost;
+        window.location.href = `${baseHost}${loginPath}`;
       }, 1500);
     }
     // 请求失败
@@ -62,12 +84,12 @@ function axiosWrapper(promise, options) {
 
   // 验证通过后，提取需要的data
   function extract(response) {
-    return response.data;
+    return newOption.extract ? response.data : response;
   }
 
   // 处理错误情况
   function handleError(error) {
-    // message.error(error)  // antd 的全局提示
+    // message.error(error)  // 提示错误，例如 antd 的全局提示
     throw error;
   }
 

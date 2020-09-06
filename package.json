@@ -1,0 +1,24 @@
+{
+  "name": "code",
+  "version": "1.0.0",
+  "description": "收集一些常用的代码",
+  "main": "axios-request.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test-promise": "promises-aplus-tests promise.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lazyken/code.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lazyken/code/issues"
+  },
+  "homepage": "https://github.com/lazyken/code#readme",
+  "devDependencies": {
+    "promises-aplus-tests": "*"
+  }
+}

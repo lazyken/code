@@ -89,7 +89,6 @@ class Promise {
         this.onResolvedCallBacks.push(() => {
           setTimeout(() => {
             try {
-              // ...todo
               let data = onResolved(this.value);
               processPromise(nextPromise, data, resolve, reject);
             } catch (error) {
@@ -100,7 +99,6 @@ class Promise {
         this.onRejectedCallBacks.push(() => {
           setTimeout(() => {
             try {
-              // ...todo
               let data = onRejected(this.reason);
               processPromise(nextPromise, data, resolve, reject);
             } catch (error) {
@@ -112,6 +110,23 @@ class Promise {
     });
 
     return nextPromise;
+  }
+
+  finally(cb) {
+    return this.then(
+      (data) => {
+        return Promise.resolve(cb()).then(() => data);
+      },
+      (err) => {
+        return Promise.resolve(cb()).then(() => {
+          throw err;
+        });
+      }
+    );
+  }
+
+  catch(onRejected) {
+    return this.then(null, onRejected);
   }
 }
 
@@ -183,15 +198,56 @@ function processPromise(nextPromise, data, resolve, reject) {
   }
 }
 
-// Promise.resolve = function (value) {};
+Promise.resolve = function (value) {
+  if (value instanceof Promise) {
+    return value;
+  } else {
+    return new Promise((resolve, reject) => {
+      // value是Error实例时，还是resolve出去，此时传递的是Error实例对象本身，并不是执行出错
+      resolve(value);
+    });
+  }
+};
 
-// Promise.reject = function (reason) {};
+Promise.reject = function (reason) {
+  return new Promise((resolve, reject) => {
+    reject(reason);
+  });
+};
 
-// Promise.all = function (array) {};
+Promise.all = function (arr) {
+  return new Promise((resolve, reject) => {
+    let result = [];
+    let count = 0;
+    function _procressData(index, data) {
+      result[index] = data;
+      count++;
+      if (count === arr.length) {
+        resolve(result);
+      }
+    }
+    for (let i = 0; i < arr.length; i++) {
+      Promise.resolve(arr[i]).then((data) => {
+        _procressData(i, data);
+      }, reject);
+    }
+  });
+};
 
-// Promise.race = function (array) {};
-
-// Promise.prototype.catch = function (onRejected) {};
+Promise.race = function (arr) {
+  return new Promise((resolve, reject) => {
+    for (let i = 0; i < arr.length; i++) {
+      Promise.resolve(arr[i]).then(
+        (data) => {
+          resolve(data);
+        },
+        (err) => {
+          reject(err);
+        }
+      );
+    }
+  });
+};
 
 Promise.defer = Promise.deferred = function () {
   let dfd = {};

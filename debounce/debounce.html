@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>debounce</title>
   <style>
     #app {
       width: 500px;
@@ -22,7 +22,6 @@
 <body>
   <div id="app">
   </div>
-  <span id="count"></span>
 
   <script>
     var count = 0
@@ -31,7 +30,7 @@
 
     function getUserAction(e) {
       // console.log('this', this)
-      console.log('e', e)
+      // console.log('e', e)
       appDOM.innerHTML = ++count
     }
 

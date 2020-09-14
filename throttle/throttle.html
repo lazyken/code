@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Throttle</title>
+  <style>
+    #app {
+      width: 500px;
+      height: 300px;
+      margin: 0 auto;
+      background-color: #666;
+      line-height: 300px;
+      font-size: 30px;
+      color: #fff;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app"></div>
+  <script>
+    var count = 0
+    var appDOM = document.getElementById('app')
+    appDOM.onmousemove = throttle(getUserAction, 1000, true)
+
+    function getUserAction(e) {
+      appDOM.innerHTML = ++count
+    }
+
+    function throttle(func, await, immediate) {
+      var timer, result;
+      return function throttled() {
+        // DOM对象的事件回调函数中的this指向DOM对象本身，以及默认回给回调函数传入事件对象参数Event
+        // debounce返回该函数，并赋值给DOM对象的事件回调函数，此时this就指向DOM对象，Event也在arguments中
+        var context = this
+        var args = arguments
+        // 如果需要立即执行，即先执行后等待
+        if (immediate) {
+          // 先执行，且上一次执行结束了才能进行下一次执行
+          if (!timer) {
+            // 先执行
+            result = func.apply(context, args)
+            // 后等待
+            timer = setTimeout(function () {
+              // 等待结束，可以继续下一次执行
+              // 这里赋值null不用担心定时器没有释放的问题，因为此时定时器已经执行了，不是未执行。
+              timer = null
+            }, await)
+          }
+
+        } else {
+          if (!timer) {
+            timer = setTimeout(function () {
+              timer = null
+              // 异步时，执行func()，调用时的执行上下文是window对象，func内部的this回指向window
+              // 修正func的this指向，和默认参数，保持和不使用debounce时一致
+              result = func.apply(context, args)
+            }, await)
+          }
+        }
+        // 事件回调函数func有可能是有返回值的，我们也将它return
+        // 注意，当immediate为false时，result的赋值是异步的，所以异步结束前，这里return的result仍然是undefined。
+        // 当immediate为false时，return出去的result始终都是undeined
+        // 当immediate为true时，因为是立即执行，result已经被赋值了，所以这里return的就是事件回调函数func实际的返回值。
+        return result
+      }
+      // cancel方法可以立即取消当前这一次的debounce，当等待时间很长想提前取消时很有用
+      // 如果是立即执行，那么效果就是func已经执行了
+      // 如果不是立即执行，那么在setTimeout结束前调用cancel方法，func都不会被执行
+      throttled.cancel = function () {
+        clearTimeout(timer)
+        timer = null
+      }
+      return throttled
+    }
+
+  </script>
+</body>
+
+</html>

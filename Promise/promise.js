@@ -1,3 +1,4 @@
+// https://promisesaplus.com/
 // promise有三种状态
 const PENDING = 'PENDING';
 const RESOLVED = 'RESOLVED';
